@@ -19,7 +19,6 @@ load_dotenv(".env")
 
 MODEL = os.environ.get("BASE_MODEL")
 MODEL_SUPERVISOR = os.environ.get("BASE_MODEL")  # model supporting tool calling
-
 TOOLS = [web_search, calc]
 
 planner_llm = make_openrouter_llm(MODEL, temperature=0.0)
@@ -30,7 +29,6 @@ summarizer_llm = make_openrouter_llm(MODEL, temperature=0.3)
 supervisor_agent_graph = create_agent(
     model=supervisor_llm, tools=TOOLS, system_prompt=supervisor_system_prompt
 )
-
 
 def planner_node(state: State) -> Dict[str, Any]:
     sys = SystemMessage(content=planner_system_prompt)
