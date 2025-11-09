@@ -40,7 +40,7 @@ graph = create_agent(llm, tools)
 
 
 if __name__ == "__main__":
-    test_pdf = Path(__file__).parent / "test.pdf"
+    test_pdf = Path(__file__).parent.parent.parent / "data" / "test.pdf"
 
     result = graph.invoke(
         f"Analyze the document at {test_pdf} and tell me what it contains"

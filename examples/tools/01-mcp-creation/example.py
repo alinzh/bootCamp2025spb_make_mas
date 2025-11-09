@@ -34,7 +34,7 @@ async def main():
 
         agent = create_agent(llm, tools)
 
-        test_pdf = Path(__file__).parent.parent / "00-tools-introduction" / "test.pdf"
+        test_pdf = Path(__file__).parent.parent.parent / "data" / "test.pdf"
 
         response = await agent.ainvoke(
             f"Analyze the document at {test_pdf} and tell me what it contains"
