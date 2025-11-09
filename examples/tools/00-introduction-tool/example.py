@@ -10,7 +10,7 @@ from markitdown import MarkItDown
 load_dotenv()
 
 md = MarkItDown()
-MODEL = os.getenv("MODEL") or ""
+BASE_MODEL = os.getenv("BASE_MODEL") or ""
 BASE_URL = os.getenv("BASE_URL") or "https://openrouter.ai/api/v1"
 
 
