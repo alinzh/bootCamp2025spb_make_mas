@@ -11,19 +11,19 @@ from langchain_openai import ChatOpenAI
 load_dotenv()
 
 BASE_MODEL = os.getenv("BASE_MODEL") or ""
-BASE_URL = os.getenv("BASE_URL")
+BASE_URL = os.getenv("BASE_URL") or "https://openrouter.ai/api/v1"
 
 
 async def main():
     server_script = Path(__file__).parent / "server.py"
 
     async with Client(str(server_script)) as client:
-        print("Available Tools:")
+        print("Available tools:")
         tools_list = await client.list_tools()
         for tool in tools_list.tools:
             print(f"  - {tool.name}: {tool.description}")
 
-        print("Available Resources:")
+        print("Available resources:")
         resources_list = await client.list_resources()
         for resource in resources_list.resources:
             print(f"  - {resource.uri}")
@@ -40,7 +40,7 @@ async def main():
             f"Analyze the document at {test_pdf} and tell me what it contains"
         )
 
-        print("Agent Response:")
+        print("Agent response:")
         for message in response["messages"]:
             if hasattr(message, "content") and message.content:
                 print(f"\n{message.type}: {message.content}")
