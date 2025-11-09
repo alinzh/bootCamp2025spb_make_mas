@@ -1,24 +1,25 @@
 import os
 from typing import Any, Dict
 
-from connectors.llm_connectors import make_openrouter_llm
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
-from prompts import (
+
+from .connectors.llm_connectors import make_openrouter_llm
+from .prompts import (
     planner_system_prompt,
     summary_system_prompt,
     supervisor_system_prompt,
     validator_system_prompt,
 )
-from state import State
-from tools.playground_tools.tools import calc, web_search
+from .state import State
+from .tools.playground_tools.tools import calc, web_search
 
 load_dotenv(".env")
 
-MODEL = os.environ.get("BASE_MODEL")
-MODEL_SUPERVISOR = os.environ.get("BASE_MODEL")  # model supporting tool calling
+MODEL = os.environ.get("BASE_MODEL") or ""
+MODEL_SUPERVISOR = os.environ.get("BASE_MODEL") or ""  # model supporting tool calling
 TOOLS = [web_search, calc]
 
 planner_llm = make_openrouter_llm(MODEL, temperature=0.0)
@@ -29,6 +30,7 @@ summarizer_llm = make_openrouter_llm(MODEL, temperature=0.3)
 supervisor_agent_graph = create_agent(
     model=supervisor_llm, tools=TOOLS, system_prompt=supervisor_system_prompt
 )
+
 
 def planner_node(state: State) -> Dict[str, Any]:
     sys = SystemMessage(content=planner_system_prompt)
