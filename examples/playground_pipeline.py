@@ -1,20 +1,19 @@
 import os
 from typing import Any, Dict
 
+from connectors.llm_connectors import make_openrouter_llm
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
-
-from .connectors.llm_connectors import make_openrouter_llm
-from .prompts import (
+from prompts import (
     planner_system_prompt,
     summary_system_prompt,
     supervisor_system_prompt,
     validator_system_prompt,
 )
-from .state import State
-from .tools.playground_tools.tools import calc, web_search
+from state import State
+from tools.playground_tools.tools import calc, web_search
 
 load_dotenv(".env")
 
