@@ -16,6 +16,14 @@ BASE_URL = os.getenv("BASE_URL") or "https://openrouter.ai/api/v1"
 
 @tool
 def convert_to_markdown(file_path: str) -> str:
+    """Convert document to Markdown text format.
+
+    Args:
+        file_path: Path to document file (PDF, DOCX, XLSX, PPTX)
+
+    Returns:
+        Converted text content in Markdown format
+    """
     try:
         expanded_path = os.path.expanduser(file_path)
         result = md.convert(expanded_path)
@@ -26,7 +34,7 @@ def convert_to_markdown(file_path: str) -> str:
 
 tools = [convert_to_markdown]
 
-llm = ChatOpenAI(model=MODEL, base_url=BASE_URL, temperature=0)  # type: ignore
+llm = ChatOpenAI(model=BASE_MODEL, base_url=BASE_URL, temperature=0)  # type: ignore
 
 graph = create_agent(llm, tools)
 
