@@ -5,7 +5,9 @@ from langchain_core.messages import AnyMessage, HumanMessage, AIMessage, SystemM
 from langchain_openai import ChatOpenAI
 from langchain.tools import tool
 from langchain.agents import create_agent 
+from dotenv import load_dotenv
 
+load_dotenv(".env")
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 MODEL_PLANNER     = "google/gemini-2.0-flash-lite-001"
