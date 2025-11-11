@@ -8,18 +8,20 @@ from dotenv import load_dotenv
 from e2b_code_interpreter import Execution, Sandbox
 from langchain.tools import tool
 from langchain_core.messages import HumanMessage
-from langchain_openai import ChatOpenAI
+from mas_lib.connectors.llm_connectors import get_llm_client
 from langchain_tavily import TavilySearch
 from pydantic import Field
+from langchain_openai import ChatOpenAI
+
 
 load_dotenv()
 
 tavily_search = TavilySearch(
-    max_results=5,
+    max_results=3,
     search_depth="advanced",
     include_answer=True,
-    include_raw_content=True,
-    include_images=True,
+    include_raw_content=False,
+    include_images=False,
 )
 
 web_search = tavily_search
@@ -64,6 +66,8 @@ def e2b_run_code(
     try:
         sandbox = get_sandbox(sandbox_id)
         result = sandbox.run_code(code_block)
+        print("\n--- TOOL:  e2b---\n", code_block + '\n\n' + str(result))
+
         return result
 
     except Exception as e:
@@ -74,9 +78,11 @@ def e2b_run_code(
 def describe_image(
     image_path: str, prompt: str = "Describe this image in detail"
 ) -> str:
-    """Analyze and describe an image from a URL or local file path using vision model"""
+    """Analyze and describe an image from a URL or LOCAL file path using vision model"""
     model = ChatOpenAI(
-        model=os.getenv("VISION_MODEL", "google/gemini-2.5-flash"),  # type: ignore
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.getenv('OPENROUTER_API_KEY'),
+        model=os.getenv("VISION_MODEL", "mistralai/mistral-small-3.2-24b-instruct:free"),  # type: ignore
         temperature=0,
     )
 
@@ -106,6 +112,17 @@ def describe_image(
 
     try:
         response = model.invoke([message])
+        print("\n--- TOOL:  describe_image---\n", response.content)
+
         return str(response.content)
     except Exception as e:
         return f"Error processing image: {e}"
+
+
+@tool
+def calc(expr: str) -> str:
+    """calculator"""
+    try:
+        return str(eval(expr, {"__builtins__": {}}))
+    except Exception as e:
+        return f"calc error: {e}"

@@ -1,34 +1,34 @@
 import os
 from typing import Any, Dict, List
 
-from connectors.llm_connectors import make_openrouter_llm
+from mas_lib.connectors.llm_connectors import get_llm_client
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from langgraph.graph import END, START, StateGraph
 
-from prompts import (
+from mas_lib.prompts import (
     planner_system_prompt,
     summary_system_prompt,
     supervisor_system_prompt,
     validator_system_prompt,
 )
-from tools.playground_tools.tools import calc, web_search
-from state import State
+from mas_lib.tools import web_search, describe_image, e2b_run_code
+from mas_lib.state import State
 
 load_dotenv(".env")
 
 MODEL = os.environ.get("BASE_MODEL")
 MODEL_SUPERVISOR = os.environ.get("BASE_MODEL")  # model supporting tool calling
-TOOLS = [web_search, calc]
+TOOLS = [web_search, describe_image, e2b_run_code]
 
-planner_llm = make_openrouter_llm(MODEL, temperature=0.1)
-supervisor_llm = make_openrouter_llm(MODEL_SUPERVISOR, temperature=0.1)
-validator_llm = make_openrouter_llm(MODEL, temperature=0.0)
-summarizer_llm = make_openrouter_llm(MODEL, temperature=0.1)
+planner_llm = get_llm_client(MODEL, temperature=0.1)
+supervisor_llm = get_llm_client(MODEL_SUPERVISOR, temperature=0.1)
+validator_llm = get_llm_client(MODEL, temperature=0.0)
+summarizer_llm = get_llm_client(MODEL, temperature=0.1)
 
 supervisor_agent_graph = create_agent(
-    model=supervisor_llm, tools=TOOLS, system_prompt=supervisor_system_prompt
+    model=supervisor_llm, tools=TOOLS, system_prompt=supervisor_system_prompt, # debug=True
 )
 
 def _ensure_defaults(state: Dict[str, Any]) -> State:
@@ -49,6 +49,9 @@ def planner_node(state: State) -> Dict[str, Any]:
     new_state = dict(state)
     new_state["messages"] = state["messages"] + [res]
     new_state["plan"] = steps[:8] or None
+    
+    print("\n--- PLANNER ---\n", steps[:8] or None)
+
     return _ensure_defaults(new_state)
 
 def supervisor_node(state: State) -> Dict[str, Any]:
@@ -68,6 +71,9 @@ def supervisor_node(state: State) -> Dict[str, Any]:
     new_state = dict(state)
     new_state["messages"] = state["messages"] + appended
     new_state["draft"] = draft
+    
+    print("\n--- SUPERVISOR ---\n", draft)
+    
     return _ensure_defaults(new_state)
 
 def validator_node(state: State) -> Dict[str, Any]:
@@ -84,6 +90,9 @@ def validator_node(state: State) -> Dict[str, Any]:
     new_state["messages"] = state["messages"] + [AIMessage(content=f"[validator] {res.content}")]
     new_state["validated"] = valid
     new_state["validation_fail_count"] = count
+    
+    print("\n--- VALIDATOR ---\n", res.content)
+
     return _ensure_defaults(new_state)
 
 def summarizer_node(state: State) -> Dict[str, Any]:
@@ -118,9 +127,11 @@ graph.add_edge("summarizer", END)
 app = graph.compile()
 
 if __name__ == "__main__":
-    wrong_query = 'Download Wiki page about LLM.'
+    # query = 'Tell the story of ITMO University, using only confirmed information.'
+    # query = 'Write code that will parse this page. What is about? Page: https://habr.com/ru/companies/spbifmo/articles/896868/'
+    query = 'Describe the image https://cs1.htmlacademy.ru/blog/html/image-link/f7f41a6d72f8b2f2186fbe3614f87639.png'
     init: State = {
-        "messages": [HumanMessage(content=wrong_query)],
+        "messages": [HumanMessage(content=query)],
         "plan": None,
         "draft": None,
         "validated": None,

@@ -1,19 +1,19 @@
 import os
 from typing import Any, Dict
 
-from connectors.llm_connectors import make_openrouter_llm
+from mas_lib.connectors.llm_connectors import get_llm_client
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
-from prompts import (
+from mas_lib.prompts import (
     planner_system_prompt,
     summary_system_prompt,
     supervisor_system_prompt,
     validator_system_prompt,
 )
-from state import State
-from tools.playground_tools.tools import calc, web_search
+from mas_lib.state import State
+from mas_lib.tools import calc, web_search
 
 load_dotenv(".env")
 
@@ -21,10 +21,10 @@ MODEL = os.environ.get("BASE_MODEL") or ""
 MODEL_SUPERVISOR = os.environ.get("BASE_MODEL") or ""  # model supporting tool calling
 TOOLS = [web_search, calc]
 
-planner_llm = make_openrouter_llm(MODEL, temperature=0.0)
-supervisor_llm = make_openrouter_llm(MODEL_SUPERVISOR, temperature=0.0)
-validator_llm = make_openrouter_llm(MODEL, temperature=0.0)
-summarizer_llm = make_openrouter_llm(MODEL, temperature=0.3)
+planner_llm = get_llm_client(MODEL, temperature=0.0)
+supervisor_llm = get_llm_client(MODEL_SUPERVISOR, temperature=0.0)
+validator_llm = get_llm_client(MODEL, temperature=0.0)
+summarizer_llm = get_llm_client(MODEL, temperature=0.3)
 
 supervisor_agent_graph = create_agent(
     model=supervisor_llm, tools=TOOLS, system_prompt=supervisor_system_prompt
