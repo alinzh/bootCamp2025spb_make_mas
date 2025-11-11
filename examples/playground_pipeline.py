@@ -97,6 +97,7 @@ graph.add_edge("summarizer", END)
 
 
 app = graph.compile()
+print(app.get_graph().draw_ascii())
 
 
 if __name__ == "__main__":
@@ -112,4 +113,5 @@ if __name__ == "__main__":
         "summary": None,
     }
     state = app.invoke(init)
+
     print("\n--- SUMMARY ---\n", state.get("summary"))
